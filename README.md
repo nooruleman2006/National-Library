@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## 📸 Screenshots
 
-## Getting Started
+### 🏠 Homepage
+<p align="center">
+  <img src="screenshots/Homepage.png" alt="Homepage" width="700"/>
+</p>
 
-First, run the development server:
+### 👥 Member Management
+<p align="center">
+  <img src="screenshots/Add_new_Member.png" alt="Add New Member" width="700"/>
+  <img src="screenshots/All_Members.png" alt="All Members" width="700"/>
+  <img src="screenshots/All_Members_View.png" alt="All Members View" width="700"/>
+</p>
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### 📚 Book Management
+<p align="center">
+  <img src="screenshots/Available_Books.png" alt="Available Books" width="700"/>
+</p>
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 📖 Issue & Return
+<p align="center">
+  <img src="screenshots/IssueBook.png" alt="Issue Book" width="700"/>
+  <img src="screenshots/Library_Issue_.png" alt="Library Issue" width="700"/>
+</p>
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 📊 Summary & Reports
+<p align="center">
+  <img src="screenshots/SummaryPage.png" alt="Summary Page" width="700"/>
+</p>
