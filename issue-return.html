@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Issue / Return — National Library</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    .ir-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    @media (max-width: 860px) { .ir-grid { grid-template-columns: 1fr; } }
+
+    .tab-strip { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
+    .tab-btn {
+      flex: 1; padding: .65rem 1rem; border-radius: 8px; font-size: .84rem; font-weight: 600;
+      border: 1px solid var(--border); color: var(--t3); transition: all .13s; cursor: pointer;
+      font-family: inherit; background: transparent;
+    }
+    .tab-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-border); }
+    .tab-btn:hover:not(.active) { color: var(--t1); background: rgba(255,255,255,.04); }
+
+    /* Loan record card */
+    .loan-card {
+      background: var(--bg-3); border: 1px solid var(--border); border-radius: 10px;
+      padding: 1rem 1.2rem; margin-bottom: .8rem; transition: border-color .13s;
+    }
+    .loan-card:hover { border-color: var(--accent-border); }
+    .loan-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: .65rem; }
+    .loan-member-name { font-weight: 600; font-size: .92rem; color: var(--t1); }
+    .loan-member-meta { font-family: var(--fm); font-size: .62rem; color: var(--t3); margin-top: 2px; }
+    .loan-badge {
+      font-family: var(--fm); font-size: .58rem; letter-spacing: .1em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 50px;
+    }
+    .loan-badge-exec { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+    .loan-badge-jour { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-b); }
+    .loan-books-list { display: flex; flex-direction: column; gap: 4px; }
+    .loan-book-item { display: flex; align-items: center; gap: .6rem; font-size: .8rem; color: var(--t2); }
+    .loan-book-ico { font-size: .75rem; opacity: .6; }
+    .loan-book-date { margin-left: auto; font-family: var(--fm); font-size: .65rem; color: var(--t3); }
+
+    /* preview panel */
+    .preview-panel {
+      background: var(--bg-3); border: 1px solid var(--border-2); border-radius: 9px;
+      padding: 1rem 1.2rem; margin-bottom: 1rem; display: none;
+    }
+    .preview-panel.show { display: block; }
+    .preview-header { font-family: var(--fm); font-size: .55rem; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: .6rem; }
+    .preview-name { font-size: 1rem; font-weight: 700; color: var(--t1); }
+    .preview-meta { font-size: .78rem; color: var(--t3); margin-top: 3px; margin-bottom: .75rem; }
+    .preview-books { display: flex; flex-direction: column; gap: 4px; margin-bottom: .75rem; }
+    .preview-book-row { display: flex; gap: .6rem; align-items: center; font-size: .8rem; color: var(--t2); padding: .35rem 0; border-bottom: 1px solid var(--border-2); }
+    .preview-book-row:last-child { border: none; }
+
+    .book-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-bottom: 1rem; }
+    @media (max-width: 640px) { .book-select-grid { grid-template-columns: 1fr; } }
+    .book-select-item {
+      display: flex; align-items: center; gap: .6rem; padding: .55rem .8rem;
+      background: var(--bg-3); border: 1px solid var(--border); border-radius: 7px;
+      cursor: pointer; transition: all .12s; font-size: .8rem; color: var(--t2);
+    }
+    .book-select-item.selected { border-color: var(--accent-border); background: var(--accent-dim); color: var(--accent); }
+    .book-select-item.unavailable { opacity: .4; cursor: not-allowed; }
+    .book-select-cb { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid var(--border); flex-shrink: 0; }
+    .book-select-item.selected .book-select-cb { background: var(--accent); border-color: var(--accent); }
+
+    .empty-loans { display: flex; flex-direction: column; align-items: center; gap: .6rem; padding: 2.5rem 1rem; color: var(--t3); text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="noise" aria-hidden="true"></div>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo">
+          <svg viewBox="0 0 36 36" fill="none" width="36" height="36">
+            <rect x="6"  y="8"  width="4" height="20" rx="1" fill="#4e9af1"/>
+            <rect x="12" y="5"  width="4" height="23" rx="1" fill="#7ab8f5"/>
+            <rect x="18" y="10" width="4" height="18" rx="1" fill="#4e9af1"/>
+            <rect x="24" y="7"  width="4" height="21" rx="1" fill="#7ab8f5"/>
+            <rect x="5"  y="28" width="24" height="2"  rx="1" fill="#a8d0fa"/>
+          </svg>
+        </div>
+        <div class="nav-brand-text">
+          <span class="nav-brand-main">National</span>
+          <span class="nav-brand-accent">Library</span>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="members.html">Members</a>
+        <a class="nav-link" href="add.html">Add Book</a>
+        <a class="nav-link active" href="issue-return.html">Issue / Return</a>
+        <a class="nav-link" href="fines.html">Fines</a>
+      </nav>
+      <div class="nav-right">
+        <span class="nav-date" id="topbar-date"></span>
+        <span class="nav-badge">ADMIN</span>
+        <div class="nav-avatar">NL</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SECTION BAR -->
+  <div class="section-bar">
+    <div class="section-bar-inner">
+      <div>
+        <p class="section-eyebrow">ISSUE / RETURN</p>
+        <h2 class="section-title">Issue &amp; Return</h2>
+      </div>
+    </div>
+  </div>
+
+  <main class="main">
+
+    <!-- TABS -->
+    <div class="tab-strip">
+      <button class="tab-btn active" id="tab-issue"  onclick="switchTab('issue')">📤 Issue Books</button>
+      <button class="tab-btn"        id="tab-return" onclick="switchTab('return')">📥 Return Books</button>
+    </div>
+
+    <!-- ═══ ISSUE PANEL ═══ -->
+    <div id="panel-issue">
+      <div class="ir-grid">
+
+        <!-- Issue Form -->
+        <div class="card">
+          <div class="card-head"><span class="card-cap">Issue Books to Member</span></div>
+          <div class="card-body" style="padding:1.3rem 1.5rem">
+            <div class="field">
+              <label class="flbl">Member ID *</label>
+              <input type="number" class="finp" id="issue-member-id" placeholder="e.g. 101" oninput="clearIssuePreview()"/>
+            </div>
+            <button class="btn-outline w100" onclick="lookupMemberForIssue()">Look Up Member</button>
+
+            <div class="preview-panel" id="issue-preview">
+              <div class="preview-header">Member Found</div>
+              <div class="preview-name"  id="ipr-name">—</div>
+              <div class="preview-meta"  id="ipr-meta">—</div>
+              <div style="font-family:var(--fm);font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:var(--t3);margin-bottom:.5rem">Select Books to Issue</div>
+              <div class="book-select-grid" id="book-select-grid"></div>
+              <div id="issue-msg" class="notice" style="display:none"></div>
+              <button class="btn-cta w100" onclick="confirmIssue()">Confirm Issue</button>
+            </div>
+
+            <div id="issue-lookup-msg" class="notice" style="display:none;margin-top:.8rem"></div>
+          </div>
+        </div>
+
+        <!-- Policy reminder -->
+        <div class="card">
+          <div class="card-head"><span class="card-cap">Issuance Policy</span></div>
+          <div class="card-body" style="padding:1.3rem 1.5rem">
+            <div class="policy">
+              <div class="policy-row"><span>Loan period</span><strong>15 days</strong></div>
+              <div class="policy-row"><span>Max books per member</span><strong>5</strong></div>
+              <div class="policy-row"><span>Fine — Executive</span><strong class="accent">PKR 50/day</strong></div>
+              <div class="policy-row"><span>Fine — Journal</span><strong class="accent">PKR 100/day</strong></div>
+              <div class="policy-row"><span>Issue date baseline</span><strong>4 July 2025</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Loans Table -->
+      <div class="card">
+        <div class="card-head"><span class="card-cap">All Active Loans</span></div>
+        <div id="loans-list" style="padding:.5rem 1.2rem 1.2rem"></div>
+      </div>
+    </div>
+
+    <!-- ═══ RETURN PANEL ═══ -->
+    <div id="panel-return" style="display:none">
+      <div class="ir-grid">
+
+        <!-- Return Form -->
+        <div class="card">
+          <div class="card-head"><span class="card-cap">Return Books</span></div>
+          <div class="card-body" style="padding:1.3rem 1.5rem">
+            <div class="field">
+              <label class="flbl">Member ID *</label>
+              <input type="number" class="finp" id="return-member-id" placeholder="e.g. 101" oninput="clearReturnPreview()"/>
+            </div>
+            <button class="btn-outline w100" onclick="lookupMemberForReturn()">Look Up Member</button>
+
+            <div class="preview-panel" id="return-preview">
+              <div class="preview-header">Books on Loan</div>
+              <div class="preview-name" id="rpr-name">—</div>
+              <div class="preview-meta" id="rpr-meta">—</div>
+              <div class="preview-books" id="rpr-books"></div>
+              <div id="return-msg" class="notice" style="display:none"></div>
+              <button class="btn-danger w100" onclick="confirmReturn()">Confirm Return All</button>
+            </div>
+
+            <div id="return-lookup-msg" class="notice" style="display:none;margin-top:.8rem"></div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="card">
+          <div class="card-head"><span class="card-cap">Loan Statistics</span></div>
+          <div class="card-body" style="padding:1.3rem 1.5rem">
+            <div class="policy">
+              <div class="policy-row"><span>Total Active Loans</span><strong id="s-loans">—</strong></div>
+              <div class="policy-row"><span>Members With Books</span><strong id="s-members-lent">—</strong></div>
+              <div class="policy-row"><span>Books Available</span><strong id="s-avail" class="accent">—</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Returned History area -->
+      <div class="card">
+        <div class="card-head"><span class="card-cap">Members With Active Loans</span></div>
+        <div id="return-loans-list" style="padding:.5rem 1.2rem 1.2rem"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    /* ── date ── */
+    const d = new Date();
+    document.getElementById('topbar-date').textContent =
+      d.toLocaleDateString('en-PK',{weekday:'short',year:'numeric',month:'short',day:'numeric'}).toUpperCase();
+
+    /* ── data ── */
+    function loadMembers() { return JSON.parse(localStorage.getItem('nl_members') || '[]'); }
+    function saveMembers(arr) { localStorage.setItem('nl_members', JSON.stringify(arr)); }
+    function loadBooks() { return JSON.parse(localStorage.getItem('nl_books') || '[]'); }
+    function saveBooks(arr) { localStorage.setItem('nl_books', JSON.stringify(arr)); }
+
+    const ISSUE_DATE = '2025-07-04';
+
+    function showNotice(id, msg, type) {
+      const el = document.getElementById(id);
+      el.textContent = msg; el.className = 'notice ' + type; el.style.display = '';
+      setTimeout(() => el.style.display = 'none', 3500);
+    }
+
+    /* ── tabs ── */
+    function switchTab(t) {
+      document.getElementById('panel-issue').style.display  = t === 'issue'  ? '' : 'none';
+      document.getElementById('panel-return').style.display = t === 'return' ? '' : 'none';
+      document.getElementById('tab-issue').classList.toggle('active',  t === 'issue');
+      document.getElementById('tab-return').classList.toggle('active', t === 'return');
+      if (t === 'return') renderReturnLoans();
+      else renderActiveLoans();
+    }
+
+    /* ── ISSUE ── */
+    let selectedBooks = new Set();
+
+    function clearIssuePreview() {
+      document.getElementById('issue-preview').classList.remove('show');
+      selectedBooks.clear();
+    }
+
+    function lookupMemberForIssue() {
+      const mid = parseInt(document.getElementById('issue-member-id').value);
+      const members = loadMembers();
+      const m = members.find(x => x.id === mid);
+      if (!m) { showNotice('issue-lookup-msg','Member not found.','err'); return; }
+
+      document.getElementById('ipr-name').textContent = m.name;
+      document.getElementById('ipr-meta').textContent =
+        `ID #${m.id} · ${m.type === 'executive' ? 'Executive' : 'Journal'} · ${(m.books||[]).length}/5 books`;
+
+      const books = loadBooks();
+      const avail = books.filter(b => !b.lent);
+      const grid  = document.getElementById('book-select-grid');
+      selectedBooks.clear();
+
+      if (avail.length === 0) {
+        grid.innerHTML = '<p style="color:var(--t3);font-size:.8rem;grid-column:1/-1">No books currently available.</p>';
+      } else {
+        grid.innerHTML = avail.map(b =>
+          `<div class="book-select-item" id="bs-${b.id}" onclick="toggleBook(${b.id})">
+            <div class="book-select-cb" id="bscb-${b.id}"></div>
+            <span>#${b.id} ${b.title}</span>
+          </div>`
+        ).join('');
+      }
+
+      document.getElementById('issue-preview').classList.add('show');
+      document.getElementById('issue-lookup-msg').style.display = 'none';
+    }
+
+    function toggleBook(bid) {
+      const members = loadMembers();
+      const mid = parseInt(document.getElementById('issue-member-id').value);
+      const m = members.find(x => x.id === mid);
+      const currentCount = (m.books || []).length;
+
+      if (selectedBooks.has(bid)) {
+        selectedBooks.delete(bid);
+        document.getElementById('bs-' + bid).classList.remove('selected');
+      } else {
+        if (currentCount + selectedBooks.size >= 5) {
+          showNotice('issue-msg','Member can hold a maximum of 5 books.','err'); return;
+        }
+        selectedBooks.add(bid);
+        document.getElementById('bs-' + bid).classList.add('selected');
+      }
+    }
+
+    function confirmIssue() {
+      if (selectedBooks.size === 0) { showNotice('issue-msg','Select at least one book.','err'); return; }
+      const mid = parseInt(document.getElementById('issue-member-id').value);
+      const members = loadMembers();
+      const books   = loadBooks();
+      const mIdx = members.findIndex(x => x.id === mid);
+
+      selectedBooks.forEach(bid => {
+        const bIdx = books.findIndex(b => b.id === bid);
+        if (bIdx !== -1) books[bIdx].lent = true;
+        if (!members[mIdx].books) members[mIdx].books = [];
+        members[mIdx].books.push({ id: bid, name: books.find(b=>b.id===bid)?.title || 'Unknown', date: ISSUE_DATE });
+      });
+
+      saveMembers(members); saveBooks(books);
+      clearIssuePreview();
+      document.getElementById('issue-member-id').value = '';
+      showNotice('issue-lookup-msg', `${selectedBooks.size} book(s) issued successfully!`, 'ok');
+      selectedBooks.clear();
+      renderActiveLoans();
+    }
+
+    function renderActiveLoans() {
+      const members = loadMembers();
+      const withBooks = members.filter(m => m.books && m.books.length > 0);
+      const container = document.getElementById('loans-list');
+      const sLoans = withBooks.reduce((a, m) => a + m.books.length, 0);
+
+      if (withBooks.length === 0) {
+        container.innerHTML = '<div class="empty-loans"><span style="font-size:2rem;opacity:.2">📋</span><p>No active loans.</p></div>';
+        return;
+      }
+
+      container.innerHTML = withBooks.map(m => {
+        const badgeCls = m.type === 'executive' ? 'loan-badge-exec' : 'loan-badge-jour';
+        const badgeTxt = m.type === 'executive' ? 'Executive' : 'Journal';
+        return `<div class="loan-card">
+          <div class="loan-card-head">
+            <div>
+              <div class="loan-member-name">${m.name}</div>
+              <div class="loan-member-meta">ID #${m.id} · ${m.city || ''}</div>
+            </div>
+            <span class="loan-badge ${badgeCls}">${badgeTxt}</span>
+          </div>
+          <div class="loan-books-list">
+            ${m.books.map(b => `<div class="loan-book-item">
+              <span class="loan-book-ico">📖</span>
+              <span>#${b.id} ${b.name}</span>
+              <span class="loan-book-date">${b.date}</span>
+            </div>`).join('')}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    /* ── RETURN ── */
+    function clearReturnPreview() {
+      document.getElementById('return-preview').classList.remove('show');
+    }
+
+    function lookupMemberForReturn() {
+      const mid = parseInt(document.getElementById('return-member-id').value);
+      const members = loadMembers();
+      const m = members.find(x => x.id === mid);
+      if (!m) { showNotice('return-lookup-msg','Member not found.','err'); return; }
+      if (!m.books || m.books.length === 0) { showNotice('return-lookup-msg','This member has no active loans.','err'); return; }
+
+      document.getElementById('rpr-name').textContent = m.name;
+      document.getElementById('rpr-meta').textContent = `ID #${m.id} · ${m.books.length} book(s) on loan`;
+      document.getElementById('rpr-books').innerHTML = m.books.map(b =>
+        `<div class="preview-book-row">
+          <span>📖</span>
+          <span>#${b.id} ${b.name}</span>
+          <span style="margin-left:auto;font-family:var(--fm);font-size:.65rem;color:var(--t3)">${b.date}</span>
+        </div>`
+      ).join('');
+
+      document.getElementById('return-preview').classList.add('show');
+      document.getElementById('return-lookup-msg').style.display = 'none';
+    }
+
+    function confirmReturn() {
+      const mid = parseInt(document.getElementById('return-member-id').value);
+      const members = loadMembers();
+      const books   = loadBooks();
+      const mIdx = members.findIndex(x => x.id === mid);
+      const m = members[mIdx];
+
+      (m.books || []).forEach(b => {
+        const bIdx = books.findIndex(bk => bk.id === b.id);
+        if (bIdx !== -1) books[bIdx].lent = false;
+      });
+      const count = m.books.length;
+      members[mIdx].books = [];
+      saveMembers(members); saveBooks(books);
+
+      clearReturnPreview();
+      document.getElementById('return-member-id').value = '';
+      showNotice('return-lookup-msg', `${count} book(s) returned successfully.`, 'ok');
+      renderReturnLoans();
+    }
+
+    function renderReturnLoans() {
+      const members = loadMembers();
+      const withBooks = members.filter(m => m.books && m.books.length > 0);
+      const books = loadBooks();
+      const sLoans = withBooks.reduce((a, m) => a + m.books.length, 0);
+      const avail  = books.filter(b => !b.lent).length;
+
+      document.getElementById('s-loans').textContent        = sLoans;
+      document.getElementById('s-members-lent').textContent = withBooks.length;
+      document.getElementById('s-avail').textContent        = avail;
+
+      const container = document.getElementById('return-loans-list');
+      if (withBooks.length === 0) {
+        container.innerHTML = '<div class="empty-loans"><span style="font-size:2rem;opacity:.2">✅</span><p>No outstanding loans.</p></div>';
+        return;
+      }
+      container.innerHTML = withBooks.map(m => {
+        const badgeCls = m.type === 'executive' ? 'loan-badge-exec' : 'loan-badge-jour';
+        const badgeTxt = m.type === 'executive' ? 'Executive' : 'Journal';
+        return `<div class="loan-card">
+          <div class="loan-card-head">
+            <div>
+              <div class="loan-member-name">${m.name}</div>
+              <div class="loan-member-meta">ID #${m.id} · ${m.books.length} book(s)</div>
+            </div>
+            <span class="loan-badge ${badgeCls}">${badgeTxt}</span>
+          </div>
+          <div class="loan-books-list">
+            ${m.books.map(b => `<div class="loan-book-item">
+              <span class="loan-book-ico">📖</span><span>#${b.id} ${b.name}</span>
+              <span class="loan-book-date">${b.date}</span>
+            </div>`).join('')}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    renderActiveLoans();
+  </script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Book — National Library</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    .add-layout { display: grid; grid-template-columns: 380px 1fr; gap: 1.5rem; align-items: start; }
+    @media (max-width: 860px) { .add-layout { grid-template-columns: 1fr; } }
+
+    .book-row {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .85rem 1.1rem; border-bottom: 1px solid var(--border-2);
+      transition: background .12s; border-radius: 8px;
+    }
+    .book-row:last-child { border-bottom: none; }
+    .book-row:hover { background: rgba(255,255,255,.025); }
+
+    .book-num {
+      font-family: var(--fm); font-size: .68rem; color: var(--t4);
+      width: 22px; text-align: right; flex-shrink: 0;
+    }
+    .book-icon {
+      width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+      background: var(--accent-dim); border: 1px solid var(--accent-border);
+      display: flex; align-items: center; justify-content: center; font-size: .9rem;
+    }
+    .book-info { flex: 1; min-width: 0; }
+    .book-title { font-size: .88rem; font-weight: 500; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .book-id-lbl { font-family: var(--fm); font-size: .65rem; color: var(--t3); margin-top: 2px; }
+
+    .book-status {
+      font-family: var(--fm); font-size: .6rem; letter-spacing: .09em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 50px;
+    }
+    .status-avail { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-b); }
+    .status-lent  { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-b); }
+
+    .book-del-btn {
+      width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
+      background: var(--red-dim); color: var(--red); border: 1px solid var(--red-b);
+      font-size: .8rem; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all .13s;
+    }
+    .book-del-btn:hover { background: var(--red); color: #fff; }
+
+    .catalog-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .5rem; }
+    .book-count { font-family: var(--fm); font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; color: var(--t3); }
+
+    .stats-row { display: flex; gap: .8rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .mini-stat {
+      flex: 1; min-width: 120px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: .9rem 1.2rem; display: flex; flex-direction: column; gap: .2rem;
+    }
+    .mini-stat-num { font-size: 1.5rem; font-weight: 800; color: var(--t1); }
+    .mini-stat-lbl { font-family: var(--fm); font-size: .55rem; letter-spacing: .14em; text-transform: uppercase; color: var(--t3); }
+    .mini-stat.green-s .mini-stat-num { color: var(--green); }
+    .mini-stat.amber-s .mini-stat-num { color: var(--amber); }
+
+    .search-catalog { margin-bottom: 1rem; }
+    .catalog-scroll { max-height: 520px; overflow-y: auto; padding-right: 2px; }
+  </style>
+</head>
+<body>
+
+  <div class="noise" aria-hidden="true"></div>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo">
+          <svg viewBox="0 0 36 36" fill="none" width="36" height="36">
+            <rect x="6"  y="8"  width="4" height="20" rx="1" fill="#4e9af1"/>
+            <rect x="12" y="5"  width="4" height="23" rx="1" fill="#7ab8f5"/>
+            <rect x="18" y="10" width="4" height="18" rx="1" fill="#4e9af1"/>
+            <rect x="24" y="7"  width="4" height="21" rx="1" fill="#7ab8f5"/>
+            <rect x="5"  y="28" width="24" height="2"  rx="1" fill="#a8d0fa"/>
+          </svg>
+        </div>
+        <div class="nav-brand-text">
+          <span class="nav-brand-main">National</span>
+          <span class="nav-brand-accent">Library</span>
+        </div>
+      </div>
+
+      <nav class="nav-links">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="members.html">Members</a>
+        <a class="nav-link active" href="add.html">Add Book</a>
+        <a class="nav-link" href="issue-return.html">Issue / Return</a>
+        <a class="nav-link" href="fines.html">Fines</a>
+      </nav>
+
+      <div class="nav-right">
+        <span class="nav-date" id="topbar-date"></span>
+        <span class="nav-badge">ADMIN</span>
+        <div class="nav-avatar">NL</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SECTION BAR -->
+  <div class="section-bar">
+    <div class="section-bar-inner">
+      <div>
+        <p class="section-eyebrow">CATALOG</p>
+        <h2 class="section-title">Add Book</h2>
+      </div>
+    </div>
+  </div>
+
+  <main class="main">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="mini-stat">
+        <span class="mini-stat-num" id="s-total">—</span>
+        <span class="mini-stat-lbl">Total Titles</span>
+      </div>
+      <div class="mini-stat green-s">
+        <span class="mini-stat-num" id="s-avail">—</span>
+        <span class="mini-stat-lbl">Available</span>
+      </div>
+      <div class="mini-stat amber-s">
+        <span class="mini-stat-num" id="s-lent">—</span>
+        <span class="mini-stat-lbl">On Loan</span>
+      </div>
+    </div>
+
+    <div class="add-layout">
+
+      <!-- ADD FORM -->
+      <div class="card" style="align-self:start">
+        <div class="card-head"><span class="card-cap">Add to Catalog</span></div>
+        <div class="card-body" style="padding:1.4rem 1.5rem">
+          <div class="field">
+            <label class="flbl">Book ID *</label>
+            <input type="number" class="finp" id="book-id" placeholder="e.g. 31"/>
+          </div>
+          <div class="field">
+            <label class="flbl">Title *</label>
+            <input type="text" class="finp" id="book-title" placeholder="e.g. The Alchemist"/>
+          </div>
+          <div class="field">
+            <label class="flbl">Author</label>
+            <input type="text" class="finp" id="book-author" placeholder="e.g. Paulo Coelho"/>
+          </div>
+          <div class="field">
+            <label class="flbl">Genre</label>
+            <select class="finp" id="book-genre">
+              <option value="">— optional —</option>
+              <option>Fiction</option><option>Non-Fiction</option><option>History</option>
+              <option>Science</option><option>Philosophy</option><option>Biography</option>
+              <option>Technology</option><option>Religion</option><option>Other</option>
+            </select>
+          </div>
+          <div id="add-book-msg" class="notice" style="display:none"></div>
+          <button class="btn-cta w100" style="margin-top:.4rem" onclick="addBook()">+ Add to Catalog</button>
+        </div>
+      </div>
+
+      <!-- CATALOG LIST -->
+      <div class="card">
+        <div class="card-head catalog-head">
+          <span class="card-cap">Book Catalog</span>
+          <span class="book-count" id="book-count-label">0 titles</span>
+        </div>
+        <div style="padding:0 1.2rem 1rem">
+          <div class="search-wrap search-catalog">
+            <svg class="search-ico" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M13.5 13.5 17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input class="search-inp" id="book-search" placeholder="Search title or ID…" oninput="renderCatalog()"/>
+          </div>
+          <div class="catalog-scroll" id="catalog-list"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    /* ── date ── */
+    const d = new Date();
+    document.getElementById('topbar-date').textContent =
+      d.toLocaleDateString('en-PK',{weekday:'short',year:'numeric',month:'short',day:'numeric'}).toUpperCase();
+
+    /* ── data ── */
+    function loadBooks() {
+      const raw = localStorage.getItem('nl_books');
+      if (raw) return JSON.parse(raw);
+      const defaults = [
+        {id:1,  title:'The Alchemist',           author:'Paulo Coelho',    genre:'Fiction',     lent:false},
+        {id:2,  title:'Atomic Habits',            author:'James Clear',     genre:'Non-Fiction', lent:false},
+        {id:3,  title:'Sapiens',                  author:'Yuval Harari',    genre:'History',     lent:false},
+        {id:4,  title:'1984',                     author:'George Orwell',   genre:'Fiction',     lent:false},
+        {id:5,  title:'Thinking, Fast and Slow',  author:'Daniel Kahneman', genre:'Philosophy',  lent:false},
+      ];
+      localStorage.setItem('nl_books', JSON.stringify(defaults));
+      return defaults;
+    }
+    function saveBooks(arr) { localStorage.setItem('nl_books', JSON.stringify(arr)); }
+
+    let books = loadBooks();
+
+    function showNotice(id, msg, type) {
+      const el = document.getElementById(id);
+      el.textContent = msg; el.className = 'notice ' + type; el.style.display = '';
+      setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    function updateStats() {
+      const lent  = books.filter(b => b.lent).length;
+      document.getElementById('s-total').textContent = books.length;
+      document.getElementById('s-avail').textContent = books.length - lent;
+      document.getElementById('s-lent').textContent  = lent;
+    }
+
+    const icons = ['📘','📗','📙','📕','📒','📓'];
+
+    function renderCatalog() {
+      const q = document.getElementById('book-search').value.toLowerCase().trim();
+      const filtered = books.filter(b =>
+        !q || b.title.toLowerCase().includes(q) || String(b.id).includes(q) || (b.author||'').toLowerCase().includes(q)
+      );
+      document.getElementById('book-count-label').textContent = books.length + ' title' + (books.length !== 1 ? 's' : '');
+      const container = document.getElementById('catalog-list');
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="padding:2rem"><span class="es-icon">📚</span><p>No books found.</p></div>';
+        return;
+      }
+      container.innerHTML = filtered.map((b, i) => {
+        const idx = books.indexOf(b);
+        const statusCls = b.lent ? 'status-lent' : 'status-avail';
+        const statusTxt = b.lent ? 'On Loan' : 'Available';
+        const ico = icons[b.id % icons.length];
+        return `<div class="book-row">
+          <span class="book-num">${b.id}</span>
+          <div class="book-icon">${ico}</div>
+          <div class="book-info">
+            <div class="book-title">${b.title}</div>
+            <div class="book-id-lbl">${b.author || 'Unknown Author'}${b.genre ? ' · ' + b.genre : ''}</div>
+          </div>
+          <span class="book-status ${statusCls}">${statusTxt}</span>
+          <button class="book-del-btn" onclick="deleteBook(${idx})" title="Remove">✕</button>
+        </div>`;
+      }).join('');
+      updateStats();
+    }
+
+    function addBook() {
+      const id    = parseInt(document.getElementById('book-id').value);
+      const title = document.getElementById('book-title').value.trim();
+      const author= document.getElementById('book-author').value.trim();
+      const genre = document.getElementById('book-genre').value;
+
+      if (!id || !title) { showNotice('add-book-msg','Book ID and Title are required.','err'); return; }
+      if (books.find(b => b.id === id)) { showNotice('add-book-msg','Book ID already exists.','err'); return; }
+
+      books.push({ id, title, author, genre, lent: false });
+      saveBooks(books);
+      renderCatalog();
+      ['book-id','book-title','book-author'].forEach(f => document.getElementById(f).value = '');
+      document.getElementById('book-genre').value = '';
+      showNotice('add-book-msg','Book added successfully!','ok');
+    }
+
+    function deleteBook(idx) {
+      if (books[idx].lent) { alert('Cannot remove a book that is currently on loan.'); return; }
+      if (!confirm(`Remove "${books[idx].title}" from catalog?`)) return;
+      books.splice(idx, 1);
+      saveBooks(books);
+      renderCatalog();
+    }
+
+    renderCatalog();
+  </script>
+</body>
+</html>

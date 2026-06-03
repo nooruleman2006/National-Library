@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>National Library — Management System</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <div class="noise" aria-hidden="true"></div>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo">
+          <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
+            <rect x="6"  y="8"  width="4" height="20" rx="1" fill="#4e9af1"/>
+            <rect x="12" y="5"  width="4" height="23" rx="1" fill="#7ab8f5"/>
+            <rect x="18" y="10" width="4" height="18" rx="1" fill="#4e9af1"/>
+            <rect x="24" y="7"  width="4" height="21" rx="1" fill="#7ab8f5"/>
+            <rect x="5"  y="28" width="24" height="2" rx="1" fill="#a8d0fa"/>
+          </svg>
+        </div>
+        <div class="nav-brand-text">
+          <span class="nav-brand-main">National</span>
+          <span class="nav-brand-accent">Library</span>
+        </div>
+      </div>
+
+      <nav class="nav-links">
+        <button class="nav-link active" data-section="dashboard" onclick="showSection('dashboard')">Home</button>
+        <button class="nav-link" data-section="members"  onclick="showSection('members')">Members</button>
+        <button class="nav-link" data-section="books"    onclick="showSection('books')">Catalog</button>
+        <button class="nav-link" data-section="issue"    onclick="showSection('issue')">Issue / Return</button>
+        <button class="nav-link" data-section="fines"    onclick="showSection('fines')">Fines</button>
+      </nav>
+
+      <div class="nav-right">
+        <span class="nav-date" id="topbar-date"></span>
+        <span class="nav-badge">ADMIN</span>
+        <div class="nav-avatar">NL</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO (dashboard only) -->
+  <div class="hero" id="hero-section">
+    <div class="hero-blob b1"></div>
+    <div class="hero-blob b2"></div>
+    <div class="hero-blob b3"></div>
+    <div class="hero-content">
+      <div class="hero-pill">
+        <span class="pill-dot"></span> LIBRARY ADMINISTRATION PORTAL
+      </div>
+      <h1 class="hero-title">National Library <br><span class="hero-highlight">Management</span> System</h1>
+      <p class="hero-sub">Complete control over members, books, issuances and fines — all from one powerful dashboard.</p>
+      <div class="hero-btns">
+        <button class="btn-hero-primary" onclick="showSection('members'); openModal('modal-add-member')">+ Register Member</button>
+        <button class="btn-hero-ghost" onclick="showSection('members')">View All Members →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION BAR (non-dashboard) -->
+  <div class="section-bar" id="section-bar" style="display:none">
+    <div class="section-bar-inner">
+      <div>
+        <p class="section-eyebrow" id="section-eyebrow">ADMINISTRATION</p>
+        <h2 class="section-title" id="topbar-title">Members</h2>
+      </div>
+      <button class="btn-cta" id="topbar-cta" onclick="topbarAction()">+ Add Member</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+
+      <div class="kpi-row">
+        <div class="kpi" style="--d:.05s">
+          <div class="kpi-icon-wrap">👥</div>
+          <div class="kpi-body">
+            <span class="kpi-num" id="kpi-members">40</span>
+            <span class="kpi-lbl">Total Members</span>
+          </div>
+          <div class="kpi-glow"></div>
+        </div>
+        <div class="kpi" style="--d:.10s">
+          <div class="kpi-icon-wrap">📚</div>
+          <div class="kpi-body">
+            <span class="kpi-num" id="kpi-books">30</span>
+            <span class="kpi-lbl">Catalog Titles</span>
+          </div>
+          <div class="kpi-glow"></div>
+        </div>
+        <div class="kpi" style="--d:.15s">
+          <div class="kpi-icon-wrap">📋</div>
+          <div class="kpi-body">
+            <span class="kpi-num" id="kpi-issued">—</span>
+            <span class="kpi-lbl">Active Loans</span>
+          </div>
+          <div class="kpi-glow"></div>
+        </div>
+        <div class="kpi kpi-warn" style="--d:.20s">
+          <div class="kpi-icon-wrap">⚠️</div>
+          <div class="kpi-body">
+            <span class="kpi-num" id="kpi-overdue">—</span>
+            <span class="kpi-lbl">Overdue Items</span>
+          </div>
+          <div class="kpi-glow warn"></div>
+        </div>
+      </div>
+
+      <div class="dash-layout">
+        <div class="dash-main">
+          <div class="card">
+            <div class="card-head">
+              <span class="card-cap">Recent Members</span>
+              <button class="link-btn" onclick="showSection('members')">View all →</button>
+            </div>
+            <table class="tbl">
+              <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>City</th><th>Since</th></tr></thead>
+              <tbody id="dash-members-body"></tbody>
+            </table>
+          </div>
+          <div class="card mt">
+            <div class="card-head">
+              <span class="card-cap">Active Issuances</span>
+              <button class="link-btn" onclick="showSection('issue')">Manage →</button>
+            </div>
+            <table class="tbl">
+              <thead><tr><th>Member</th><th>Type</th><th>Books on Loan</th></tr></thead>
+              <tbody id="dash-issue-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="dash-side">
+          <div class="card">
+            <div class="card-head"><span class="card-cap">Library Policy</span></div>
+            <div class="policy">
+              <div class="policy-row"><span>Loan period</span><strong>15 days</strong></div>
+              <div class="policy-row"><span>Max books / member</span><strong>5</strong></div>
+              <div class="policy-row"><span>Fine — Executive</span><strong class="accent">PKR 50/day</strong></div>
+              <div class="policy-row"><span>Fine — Journal</span><strong class="accent">PKR 100/day</strong></div>
+              <div class="policy-row"><span>Member types</span><strong>Executive · Journal</strong></div>
+            </div>
+          </div>
+          <div class="card mt">
+            <div class="card-head"><span class="card-cap">Quick Actions</span></div>
+            <div class="action-list">
+              <button class="action-item" onclick="showSection('members'); openModal('modal-add-member')"><span class="ai-ico">＋</span> Register Member</button>
+              <button class="action-item" onclick="showSection('books'); openModal('modal-add-book')"><span class="ai-ico">＋</span> Add to Catalog</button>
+              <button class="action-item" onclick="showSection('issue')"><span class="ai-ico">→</span> Issue a Book</button>
+              <button class="action-item" onclick="showSection('fines')"><span class="ai-ico">◎</span> Calculate Fine</button>
+            </div>
+          </div>
+          <div class="card mt">
+            <div class="live-panel">
+              <div class="live-stat"><span class="live-val" id="sb-members">40</span><span class="live-key">Members</span></div>
+              <div class="live-sep"></div>
+              <div class="live-stat"><span class="live-val" id="sb-books">30</span><span class="live-key">Titles</span></div>
+              <div class="live-sep"></div>
+              <div class="live-indicator"><span class="live-dot"></span><span>Live</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MEMBERS -->
+    <section class="view" id="view-members">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 20 20" fill="none" class="search-ico"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="m14 14 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input class="search-inp" id="member-search" placeholder="Search by name or ID…" oninput="filterMembers()"/>
+        </div>
+        <button class="btn-cta" onclick="openModal('modal-add-member')">+ Add Member</button>
+      </div>
+      <div class="card">
+        <table class="tbl">
+          <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Address</th><th>Joined</th><th>Books</th><th></th></tr></thead>
+          <tbody id="members-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- BOOKS -->
+    <section class="view" id="view-books">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 20 20" fill="none" class="search-ico"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="m14 14 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input class="search-inp" id="book-search" placeholder="Search catalog…" oninput="filterBooks()"/>
+        </div>
+        <button class="btn-cta" onclick="openModal('modal-add-book')">+ Add Book</button>
+      </div>
+      <div class="card">
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Book ID</th><th>Title</th><th></th></tr></thead>
+          <tbody id="books-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ISSUE / RETURN -->
+    <section class="view" id="view-issue">
+      <div class="two-panel">
+        <div class="card">
+          <div class="card-head"><span class="card-cap">Issue a Book</span></div>
+          <div class="card-body">
+            <div class="field"><label class="flbl">Member ID</label><input type="number" class="finp" id="issue-member-id" placeholder="e.g. 101"/></div>
+            <div class="field"><label class="flbl">Book ID</label><input type="number" class="finp" id="issue-book-id" placeholder="e.g. 1"/></div>
+            <div class="field"><label class="flbl">Issue Date</label><input type="date" class="finp" id="issue-date"/></div>
+            <button class="btn-cta w100" onclick="issueBook()">Issue Book</button>
+            <div id="issue-msg" class="notice" style="display:none"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-cap">Return Books</span></div>
+          <div class="card-body">
+            <div class="field"><label class="flbl">Member ID</label><input type="number" class="finp" id="return-member-id" placeholder="e.g. 101"/></div>
+            <div id="return-preview" class="ret-preview" style="display:none"></div>
+            <button class="btn-outline w100" onclick="previewReturn()">Preview Return</button>
+            <button class="btn-danger w100" id="confirm-return-btn" style="display:none;margin-top:.7rem" onclick="confirmReturn()">Confirm Return</button>
+            <div id="return-msg" class="notice" style="display:none"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card mt">
+        <div class="card-head"><span class="card-cap">All Loan Records</span></div>
+        <table class="tbl">
+          <thead><tr><th>Member ID</th><th>Name</th><th>Type</th><th>Books on Loan</th></tr></thead>
+          <tbody id="issue-records-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- FINES -->
+    <section class="view" id="view-fines">
+      <div class="two-panel">
+        <div class="card">
+          <div class="card-head"><span class="card-cap">Calculate Fine</span></div>
+          <div class="card-body">
+            <p class="helper">Enter a date after <strong>4 July 2025</strong> and the member ID to compute outstanding fines.</p>
+            <div class="field"><label class="flbl">Today's Date</label><input type="date" class="finp" id="fine-date"/></div>
+            <div class="field"><label class="flbl">Member ID</label><input type="number" class="finp" id="fine-member-id" placeholder="e.g. 101"/></div>
+            <button class="btn-cta w100" onclick="calculateFine()">Calculate Fine</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-cap">Fine Result</span></div>
+          <div class="card-body" id="fine-result-body">
+            <div class="empty-state"><span class="es-icon">◎</span><p>Enter details to see the fine breakdown.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: ADD MEMBER -->
+  <div class="overlay" id="modal-add-member" onclick="overlayClick(event,'modal-add-member')">
+    <div class="drawer">
+      <div class="drawer-head">
+        <h2 class="drawer-title">Register Member</h2>
+        <button class="drawer-x" onclick="closeModal('modal-add-member')">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="two-field">
+          <div class="field"><label class="flbl">Member ID *</label><input type="number" class="finp" id="new-member-id" placeholder="141"/></div>
+          <div class="field"><label class="flbl">Type *</label>
+            <select class="finp" id="new-member-status"><option value="">— select —</option><option value="executive">Executive</option><option value="journal">Journal</option></select>
+          </div>
+        </div>
+        <div class="field"><label class="flbl">Full Name *</label><input type="text" class="finp" id="new-member-name" placeholder="e.g. Ahmed Ali"/></div>
+        <div class="three-field">
+          <div class="field"><label class="flbl">House No.</label><input type="number" class="finp" id="new-member-hn" placeholder="24"/></div>
+          <div class="field"><label class="flbl">Society</label><input type="text" class="finp" id="new-member-society" placeholder="DHA"/></div>
+          <div class="field"><label class="flbl">City</label><input type="text" class="finp" id="new-member-city" placeholder="Lahore"/></div>
+        </div>
+        <div class="field"><label class="flbl">Subscription Date *</label><input type="date" class="finp" id="new-member-date"/></div>
+        <div id="add-member-msg" class="notice" style="display:none"></div>
+      </div>
+      <div class="drawer-foot">
+        <button class="btn-outline" onclick="closeModal('modal-add-member')">Cancel</button>
+        <button class="btn-cta" onclick="addMember()">Register</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT MEMBER -->
+  <div class="overlay" id="modal-edit-member" onclick="overlayClick(event,'modal-edit-member')">
+    <div class="drawer drawer-sm">
+      <div class="drawer-head">
+        <h2 class="drawer-title">Edit Member</h2>
+        <button class="drawer-x" onclick="closeModal('modal-edit-member')">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="field"><label class="flbl">Full Name</label><input type="text" class="finp" id="edit-member-name"/></div>
+        <div class="three-field">
+          <div class="field"><label class="flbl">House No.</label><input type="number" class="finp" id="edit-member-hn"/></div>
+          <div class="field"><label class="flbl">Society</label><input type="text" class="finp" id="edit-member-society"/></div>
+          <div class="field"><label class="flbl">City</label><input type="text" class="finp" id="edit-member-city"/></div>
+        </div>
+        <input type="hidden" id="edit-member-index"/>
+      </div>
+      <div class="drawer-foot">
+        <button class="btn-outline" onclick="closeModal('modal-edit-member')">Cancel</button>
+        <button class="btn-cta" onclick="saveEditMember()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD BOOK -->
+  <div class="overlay" id="modal-add-book" onclick="overlayClick(event,'modal-add-book')">
+    <div class="drawer drawer-sm">
+      <div class="drawer-head">
+        <h2 class="drawer-title">Add to Catalog</h2>
+        <button class="drawer-x" onclick="closeModal('modal-add-book')">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="field"><label class="flbl">Book ID *</label><input type="number" class="finp" id="new-book-id" placeholder="31"/></div>
+        <div class="field"><label class="flbl">Title *</label><input type="text" class="finp" id="new-book-name" placeholder="e.g. The Alchemist"/></div>
+        <div id="add-book-msg" class="notice" style="display:none"></div>
+      </div>
+      <div class="drawer-foot">
+        <button class="btn-outline" onclick="closeModal('modal-add-book')">Cancel</button>
+        <button class="btn-cta" onclick="addBook()">Add Book</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VIEW MEMBER -->
+  <div class="overlay" id="modal-view-member" onclick="overlayClick(event,'modal-view-member')">
+    <div class="drawer">
+      <div class="drawer-head">
+        <h2 class="drawer-title">Member Profile</h2>
+        <button class="drawer-x" onclick="closeModal('modal-view-member')">✕</button>
+      </div>
+      <div class="drawer-body" id="view-member-body"></div>
+    </div>
+  </div>
+
+  <script>
+    function showSection(name) {
+      const hero = document.getElementById('hero-section');
+      const bar  = document.getElementById('section-bar');
+      const labels = {
+        members: ['MEMBERS',        'Members'],
+        books:   ['CATALOG',        'Book Catalog'],
+        issue:   ['ISSUE / RETURN', 'Issue & Return'],
+        fines:   ['FINES',          'Fine Calculator'],
+      };
+      const ctaMap = { members: '+ Add Member', books: '+ Add Book' };
+
+      if (name === 'dashboard') {
+        hero.style.display = '';
+        bar.style.display  = 'none';
+      } else {
+        hero.style.display = 'none';
+        bar.style.display  = '';
+        document.getElementById('section-eyebrow').textContent = labels[name]?.[0] || '';
+        document.getElementById('topbar-title').textContent    = labels[name]?.[1] || '';
+        const ctaBtn = document.getElementById('topbar-cta');
+        if (ctaMap[name]) { ctaBtn.textContent = ctaMap[name]; ctaBtn.style.display = ''; }
+        else ctaBtn.style.display = 'none';
+      }
+      document.querySelectorAll('.nav-link').forEach(b => b.classList.toggle('active', b.dataset.section === name));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      const target = document.getElementById('view-' + name);
+      if (target) target.classList.add('active');
+    }
+    function topbarAction() {
+      const active = document.querySelector('.nav-link.active')?.dataset.section;
+      if (active === 'members') openModal('modal-add-member');
+      else if (active === 'books') openModal('modal-add-book');
+    }
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>

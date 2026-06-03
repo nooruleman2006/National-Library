@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Members — National Library</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Page-specific extras ── */
+    .badge {
+      display: inline-block; font-family: var(--fm); font-size: .6rem;
+      letter-spacing: .1em; text-transform: uppercase;
+      padding: 3px 10px; border-radius: 50px; font-weight: 500;
+    }
+    .badge-exec { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+    .badge-jour { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-b); }
+
+    .tbl-actions { display: flex; gap: .4rem; }
+    .tbl-btn {
+      font-size: .72rem; font-weight: 600; padding: .28rem .75rem;
+      border-radius: 6px; transition: all .13s; font-family: inherit;
+    }
+    .tbl-btn-view  { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+    .tbl-btn-view:hover  { background: var(--accent); color: var(--bg); }
+    .tbl-btn-edit  { background: rgba(255,255,255,.04); color: var(--t3); border: 1px solid var(--border); }
+    .tbl-btn-edit:hover  { color: var(--t1); border-color: rgba(255,255,255,.15); }
+    .tbl-btn-del   { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-b); }
+    .tbl-btn-del:hover   { background: var(--red); color: #fff; }
+
+    .filter-bar {
+      display: flex; gap: .6rem; align-items: center; flex-wrap: wrap;
+    }
+    .filter-chip {
+      font-size: .75rem; font-family: var(--fm); letter-spacing: .07em;
+      padding: .38rem .9rem; border-radius: 7px; border: 1px solid var(--border);
+      color: var(--t3); background: transparent; transition: all .13s; cursor: pointer;
+    }
+    .filter-chip.active, .filter-chip:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-dim); }
+
+    .stats-strip {
+      display: flex; gap: 1px; background: var(--border); border-radius: 10px; overflow: hidden;
+      border: 1px solid var(--border); margin-bottom: 1.5rem;
+    }
+    .stat-cell {
+      flex: 1; background: var(--surface); padding: 1rem 1.4rem;
+      display: flex; flex-direction: column; gap: .25rem;
+    }
+    .stat-cell:first-child { border-radius: 9px 0 0 9px; }
+    .stat-cell:last-child  { border-radius: 0 9px 9px 0; }
+    .stat-num  { font-size: 1.6rem; font-weight: 800; color: var(--t1); }
+    .stat-lbl  { font-family: var(--fm); font-size: .57rem; letter-spacing: .14em; text-transform: uppercase; color: var(--t3); }
+    .stat-cell.accent-cell .stat-num { color: var(--accent); }
+    .stat-cell.amber-cell  .stat-num { color: var(--amber); }
+
+    .table-wrap { overflow-x: auto; }
+
+    .member-id-cell { font-family: var(--fm); font-size: .78rem; color: var(--t3); }
+
+    .empty-row td { text-align: center; padding: 3.5rem 1rem; color: var(--t3); font-size: .85rem; }
+
+    /* modal profile extras */
+    .profile-avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #0891b2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; font-weight: 700; color: var(--bg);
+      margin-bottom: 1rem; flex-shrink: 0;
+    }
+    .profile-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.4rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--border-2); }
+  </style>
+</head>
+<body>
+
+  <div class="noise" aria-hidden="true"></div>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo">
+          <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
+            <rect x="6"  y="8"  width="4" height="20" rx="1" fill="#4e9af1"/>
+            <rect x="12" y="5"  width="4" height="23" rx="1" fill="#7ab8f5"/>
+            <rect x="18" y="10" width="4" height="18" rx="1" fill="#4e9af1"/>
+            <rect x="24" y="7"  width="4" height="21" rx="1" fill="#7ab8f5"/>
+            <rect x="5"  y="28" width="24" height="2"  rx="1" fill="#a8d0fa"/>
+          </svg>
+        </div>
+        <div class="nav-brand-text">
+          <span class="nav-brand-main">National</span>
+          <span class="nav-brand-accent">Library</span>
+        </div>
+      </div>
+
+      <nav class="nav-links">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link active" href="members.html">Members</a>
+        <a class="nav-link" href="add.html">Add Book</a>
+        <a class="nav-link" href="issue-return.html">Issue / Return</a>
+        <a class="nav-link" href="fines.html">Fines</a>
+      </nav>
+
+      <div class="nav-right">
+        <span class="nav-date" id="topbar-date"></span>
+        <span class="nav-badge">ADMIN</span>
+        <div class="nav-avatar">NL</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SECTION BAR -->
+  <div class="section-bar">
+    <div class="section-bar-inner">
+      <div>
+        <p class="section-eyebrow">ADMINISTRATION</p>
+        <h2 class="section-title">Members</h2>
+      </div>
+      <button class="btn-cta" onclick="openModal('modal-add-member')">+ Register Member</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- STATS STRIP -->
+    <div class="stats-strip">
+      <div class="stat-cell">
+        <span class="stat-num" id="stat-total">—</span>
+        <span class="stat-lbl">Total Members</span>
+      </div>
+      <div class="stat-cell accent-cell">
+        <span class="stat-num" id="stat-exec">—</span>
+        <span class="stat-lbl">Executive</span>
+      </div>
+      <div class="stat-cell amber-cell">
+        <span class="stat-num" id="stat-jour">—</span>
+        <span class="stat-lbl">Journal</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-num" id="stat-active">—</span>
+        <span class="stat-lbl">With Active Loans</span>
+      </div>
+    </div>
+
+    <!-- CARD: TABLE -->
+    <div class="card">
+      <div class="card-head" style="flex-wrap:wrap;gap:.8rem">
+        <div class="filter-bar">
+          <button class="filter-chip active" data-filter="all"  onclick="setFilter('all',this)">All</button>
+          <button class="filter-chip" data-filter="executive"   onclick="setFilter('executive',this)">Executive</button>
+          <button class="filter-chip" data-filter="journal"     onclick="setFilter('journal',this)">Journal</button>
+        </div>
+        <div style="margin-left:auto">
+          <div class="search-wrap" style="width:220px">
+            <svg class="search-ico" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M13.5 13.5 17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input class="search-inp" id="member-search" placeholder="Search member…" oninput="renderTable()"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Address</th>
+              <th>City</th>
+              <th>Since</th>
+              <th>Books</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="members-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL: ADD MEMBER -->
+  <div class="overlay" id="modal-add-member" onclick="overlayClick(event,'modal-add-member')">
+    <div class="drawer">
+      <div class="drawer-head">
+        <h2 class="drawer-title">Register New Member</h2>
+        <button class="drawer-x" onclick="closeModal('modal-add-member')">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="two-field">
+          <div class="field"><label class="flbl">Member ID *</label><input type="number" class="finp" id="new-id" placeholder="141"/></div>
+          <div class="field"><label class="flbl">Type *</label>
+            <select class="finp" id="new-type">
+              <option value="">— select —</option>
+              <option value="executive">Executive</option>
+              <option value="journal">Journal</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label class="flbl">Full Name *</label><input type="text" class="finp" id="new-name" placeholder="e.g. Ahmed Ali"/></div>
+        <div class="three-field">
+          <div class="field"><label class="flbl">House No.</label><input type="number" class="finp" id="new-hn" placeholder="24"/></div>
+          <div class="field"><label class="flbl">Society</label><input type="text" class="finp" id="new-society" placeholder="DHA"/></div>
+          <div class="field"><label class="flbl">City</label><input type="text" class="finp" id="new-city" placeholder="Lahore"/></div>
+        </div>
+        <div class="field"><label class="flbl">Subscription Date *</label><input type="date" class="finp" id="new-date"/></div>
+        <div id="add-msg" class="notice" style="display:none"></div>
+      </div>
+      <div class="drawer-foot">
+        <button class="btn-outline" onclick="closeModal('modal-add-member')">Cancel</button>
+        <button class="btn-cta" onclick="addMember()">Register</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT MEMBER -->
+  <div class="overlay" id="modal-edit-member" onclick="overlayClick(event,'modal-edit-member')">
+    <div class="drawer drawer-sm">
+      <div class="drawer-head">
+        <h2 class="drawer-title">Edit Member</h2>
+        <button class="drawer-x" onclick="closeModal('modal-edit-member')">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="field"><label class="flbl">Full Name</label><input type="text" class="finp" id="edit-name"/></div>
+        <div class="three-field">
+          <div class="field"><label class="flbl">House No.</label><input type="number" class="finp" id="edit-hn"/></div>
+          <div class="field"><label class="flbl">Society</label><input type="text" class="finp" id="edit-society"/></div>
+          <div class="field"><label class="flbl">City</label><input type="text" class="finp" id="edit-city"/></div>
+        </div>
+        <input type="hidden" id="edit-index"/>
+        <div id="edit-msg" class="notice" style="display:none"></div>
+      </div>
+      <div class="drawer-foot">
+        <button class="btn-outline" onclick="closeModal('modal-edit-member')">Cancel</button>
+        <button class="btn-cta" onclick="saveEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VIEW MEMBER -->
+  <div class="overlay" id="modal-view-member" onclick="overlayClick(event,'modal-view-member')">
+    <div class="drawer">
+      <div class="drawer-head">
+        <h2 class="drawer-title">Member Profile</h2>
+        <button class="drawer-x" onclick="closeModal('modal-view-member')">✕</button>
+      </div>
+      <div class="drawer-body" id="view-body"></div>
+    </div>
+  </div>
+
+  <script>
+    /* ── helpers ── */
+    function openModal(id)  { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    function overlayClick(e, id) { if (e.target.id === id) closeModal(id); }
+
+    function showNotice(id, msg, type) {
+      const el = document.getElementById(id);
+      el.textContent = msg; el.className = 'notice ' + type; el.style.display = '';
+      setTimeout(() => el.style.display = 'none', 3500);
+    }
+
+    /* ── date ── */
+    const d = new Date();
+    document.getElementById('topbar-date').textContent =
+      d.toLocaleDateString('en-PK', { weekday:'short', year:'numeric', month:'short', day:'numeric' }).toUpperCase();
+
+    /* ── data ── */
+    function loadMembers() {
+      const raw = localStorage.getItem('nl_members');
+      if (raw) return JSON.parse(raw);
+      const defaults = [
+        { id:101, name:'Sara Khan',     type:'executive', hn:12, society:'Gulberg',  city:'Lahore', date:'2025-07-04', books:[] },
+        { id:102, name:'Ali Raza',      type:'journal',   hn:5,  society:'DHA',      city:'Lahore', date:'2025-07-04', books:[] },
+        { id:103, name:'Fatima Noor',   type:'executive', hn:33, society:'Bahria',   city:'Karachi',date:'2025-07-04', books:[] },
+        { id:104, name:'Usman Tariq',   type:'journal',   hn:9,  society:'Johar',    city:'Lahore', date:'2025-07-04', books:[] },
+        { id:105, name:'Zara Ahmed',    type:'executive', hn:21, society:'Model T',  city:'Lahore', date:'2025-07-04', books:[] },
+      ];
+      localStorage.setItem('nl_members', JSON.stringify(defaults));
+      return defaults;
+    }
+
+    function saveMembers(arr) { localStorage.setItem('nl_members', JSON.stringify(arr)); }
+
+    let members = loadMembers();
+    let currentFilter = 'all';
+
+    /* ── stats ── */
+    function updateStats() {
+      const exec = members.filter(m => m.type === 'executive').length;
+      const jour = members.filter(m => m.type === 'journal').length;
+      const active = members.filter(m => m.books && m.books.length > 0).length;
+      document.getElementById('stat-total').textContent  = members.length;
+      document.getElementById('stat-exec').textContent   = exec;
+      document.getElementById('stat-jour').textContent   = jour;
+      document.getElementById('stat-active').textContent = active;
+    }
+
+    /* ── filter ── */
+    function setFilter(f, el) {
+      currentFilter = f;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      renderTable();
+    }
+
+    /* ── render ── */
+    function renderTable() {
+      const q = document.getElementById('member-search').value.toLowerCase().trim();
+      let filtered = members.filter(m => {
+        const matchFilter = currentFilter === 'all' || m.type === currentFilter;
+        const matchSearch = !q || m.name.toLowerCase().includes(q) || String(m.id).includes(q) || m.city.toLowerCase().includes(q);
+        return matchFilter && matchSearch;
+      });
+
+      const tbody = document.getElementById('members-tbody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No members found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((m, i) => {
+        const idx = members.indexOf(m);
+        const badgeCls = m.type === 'executive' ? 'badge-exec' : 'badge-jour';
+        const badgeTxt = m.type === 'executive' ? 'Executive' : 'Journal';
+        const addr = [m.hn ? `#${m.hn}` : '', m.society].filter(Boolean).join(', ') || '—';
+        const booksCount = m.books ? m.books.length : 0;
+        const booksDisplay = booksCount > 0
+          ? `<span style="color:var(--accent);font-family:var(--fm);font-size:.78rem">${booksCount} on loan</span>`
+          : `<span style="color:var(--t4);font-size:.78rem">None</span>`;
+        return `<tr>
+          <td class="member-id-cell">#${m.id}</td>
+          <td style="font-weight:500;color:var(--t1)">${m.name}</td>
+          <td><span class="badge ${badgeCls}">${badgeTxt}</span></td>
+          <td style="color:var(--t3);font-size:.8rem">${addr}</td>
+          <td style="color:var(--t2);font-size:.82rem">${m.city || '—'}</td>
+          <td style="font-family:var(--fm);font-size:.75rem;color:var(--t3)">${m.date || '—'}</td>
+          <td>${booksDisplay}</td>
+          <td>
+            <div class="tbl-actions">
+              <button class="tbl-btn tbl-btn-view" onclick="viewMember(${idx})">View</button>
+              <button class="tbl-btn tbl-btn-edit" onclick="editMember(${idx})">Edit</button>
+              <button class="tbl-btn tbl-btn-del"  onclick="deleteMember(${idx})">Del</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+
+      updateStats();
+    }
+
+    /* ── add ── */
+    function addMember() {
+      const id   = parseInt(document.getElementById('new-id').value);
+      const type = document.getElementById('new-type').value;
+      const name = document.getElementById('new-name').value.trim();
+      const hn   = document.getElementById('new-hn').value;
+      const soc  = document.getElementById('new-society').value.trim();
+      const city = document.getElementById('new-city').value.trim();
+      const date = document.getElementById('new-date').value;
+
+      if (!id || !type || !name || !date) { showNotice('add-msg','Please fill all required fields.','err'); return; }
+      if (members.find(m => m.id === id)) { showNotice('add-msg','Member ID already exists.','err'); return; }
+
+      members.push({ id, name, type, hn: hn || '', society: soc, city, date, books: [] });
+      saveMembers(members);
+      renderTable();
+      closeModal('modal-add-member');
+      ['new-id','new-name','new-hn','new-society','new-city','new-date'].forEach(f => document.getElementById(f).value = '');
+      document.getElementById('new-type').value = '';
+    }
+
+    /* ── edit ── */
+    function editMember(idx) {
+      const m = members[idx];
+      document.getElementById('edit-name').value    = m.name;
+      document.getElementById('edit-hn').value      = m.hn || '';
+      document.getElementById('edit-society').value = m.society || '';
+      document.getElementById('edit-city').value    = m.city || '';
+      document.getElementById('edit-index').value   = idx;
+      openModal('modal-edit-member');
+    }
+    function saveEdit() {
+      const idx  = parseInt(document.getElementById('edit-index').value);
+      const name = document.getElementById('edit-name').value.trim();
+      if (!name) { showNotice('edit-msg','Name cannot be empty.','err'); return; }
+      members[idx].name    = name;
+      members[idx].hn      = document.getElementById('edit-hn').value;
+      members[idx].society = document.getElementById('edit-society').value.trim();
+      members[idx].city    = document.getElementById('edit-city').value.trim();
+      saveMembers(members);
+      renderTable();
+      closeModal('modal-edit-member');
+    }
+
+    /* ── delete ── */
+    function deleteMember(idx) {
+      if (!confirm(`Remove ${members[idx].name} from the system?`)) return;
+      members.splice(idx, 1);
+      saveMembers(members);
+      renderTable();
+    }
+
+    /* ── view ── */
+    function viewMember(idx) {
+      const m = members[idx];
+      const initials = m.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+      const badgeCls = m.type === 'executive' ? 'badge-exec' : 'badge-jour';
+      const badgeTxt = m.type === 'executive' ? 'Executive' : 'Journal';
+      const addr = [m.hn ? `House #${m.hn}` : '', m.society, m.city].filter(Boolean).join(', ') || '—';
+      const booksHtml = m.books && m.books.length > 0
+        ? m.books.map(b => `<div class="pb-row"><span class="pb-id">#${b.id}</span><span class="pb-name">${b.name}</span><span class="pb-date">${b.date || ''}</span></div>`).join('')
+        : '<p style="color:var(--t3);font-size:.83rem">No active loans.</p>';
+
+      document.getElementById('view-body').innerHTML = `
+        <div class="profile-header">
+          <div class="profile-avatar">${initials}</div>
+          <div>
+            <div class="profile-name">${m.name}</div>
+            <div class="profile-meta">
+              <span class="badge ${badgeCls}">${badgeTxt}</span>
+              <span style="color:var(--t3);font-size:.78rem">ID #${m.id}</span>
+            </div>
+          </div>
+        </div>
+        <div class="profile-fields">
+          <div class="pf"><div class="pf-label">Address</div><div class="pf-val">${addr}</div></div>
+          <div class="pf"><div class="pf-label">Member Since</div><div class="pf-val">${m.date || '—'}</div></div>
+          <div class="pf"><div class="pf-label">Books on Loan</div><div class="pf-val">${m.books ? m.books.length : 0} / 5</div></div>
+          <div class="pf"><div class="pf-label">Fine Rate</div><div class="pf-val">${m.type === 'executive' ? 'PKR 50/day' : 'PKR 100/day'}</div></div>
+        </div>
+        <div class="profile-books-title">Current Loans</div>
+        ${booksHtml}
+      `;
+      openModal('modal-view-member');
+    }
+
+    renderTable();
+  </script>
+</body>
+</html>

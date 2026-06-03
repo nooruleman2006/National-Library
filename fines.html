@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fines — National Library</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    .fines-layout { display: grid; grid-template-columns: 360px 1fr; gap: 1.5rem; align-items: start; }
+    @media (max-width: 860px) { .fines-layout { grid-template-columns: 1fr; } }
+
+    /* Result panel */
+    .result-panel { animation: fadeup .3s ease both; }
+    @keyframes fadeup { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+    .fine-hero {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.5rem; padding-bottom: 1.3rem; border-bottom: 1px solid var(--border);
+    }
+    .fine-hero-left { display: flex; flex-direction: column; gap: .25rem; }
+    .fine-member-name { font-size: 1.4rem; font-weight: 700; color: var(--t1); }
+    .fine-member-sub  { font-size: .8rem; color: var(--t3); }
+    .fine-total-wrap  { text-align: right; }
+    .fine-total-label { font-family: var(--fm); font-size: .52rem; letter-spacing: .2em; text-transform: uppercase; color: var(--t3); }
+    .fine-total-amount { font-size: 2.8rem; font-weight: 800; line-height: 1.05; margin-top: 2px; }
+    .fine-total-amount.ok   { color: var(--green); }
+    .fine-total-amount.debt { color: var(--red); }
+    .fine-currency { font-size: 1.1rem; font-weight: 400; opacity: .7; }
+
+    /* Per-book breakdown */
+    .breakdown-label { font-family: var(--fm); font-size: .55rem; letter-spacing: .18em; text-transform: uppercase; color: var(--t3); margin-bottom: .7rem; }
+    .book-fine-row {
+      display: flex; align-items: center; gap: 1rem; padding: .85rem 1rem;
+      background: var(--bg-3); border: 1px solid var(--border-2); border-radius: 9px; margin-bottom: .6rem;
+    }
+    .bfr-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .bfr-body { flex: 1; min-width: 0; }
+    .bfr-title { font-size: .88rem; font-weight: 500; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bfr-meta  { font-size: .73rem; color: var(--t3); margin-top: 2px; }
+    .bfr-right { text-align: right; flex-shrink: 0; }
+    .bfr-days  { font-family: var(--fm); font-size: .7rem; color: var(--t3); }
+    .bfr-fine  { font-family: var(--fm); font-size: .95rem; font-weight: 700; margin-top: 2px; }
+    .bfr-fine.ok   { color: var(--green); }
+    .bfr-fine.debt { color: var(--red); }
+
+    .overdue-chip {
+      display: inline-block; font-family: var(--fm); font-size: .56rem; letter-spacing: .1em;
+      text-transform: uppercase; padding: 2px 7px; border-radius: 4px; margin-top: 3px;
+    }
+    .overdue-chip.yes { background: var(--red-dim);   color: var(--red);   border: 1px solid var(--red-b); }
+    .overdue-chip.no  { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-b); }
+
+    /* Bulk scan table */
+    .scan-tbl th { font-family: var(--fm); font-size: .54rem; letter-spacing: .15em; text-transform: uppercase; color: var(--t3); padding: .65rem .9rem; border-bottom: 1px solid var(--border); background: rgba(255,255,255,.02); text-align: left; }
+    .scan-tbl td { padding: .75rem .9rem; font-size: .83rem; color: var(--t2); border-bottom: 1px solid var(--border-2); }
+    .scan-tbl tr:last-child td { border: none; }
+    .scan-tbl tr:hover td { background: rgba(255,255,255,.02); }
+
+    .policy-box { background: var(--bg-3); border: 1px solid var(--border-2); border-radius: 9px; padding: 1rem 1.2rem; margin-top: 1rem; }
+    .policy-box-title { font-family: var(--fm); font-size: .54rem; letter-spacing: .16em; text-transform: uppercase; color: var(--t3); margin-bottom: .7rem; }
+  </style>
+</head>
+<body>
+
+  <div class="noise" aria-hidden="true"></div>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo">
+          <svg viewBox="0 0 36 36" fill="none" width="36" height="36">
+            <rect x="6"  y="8"  width="4" height="20" rx="1" fill="#4e9af1"/>
+            <rect x="12" y="5"  width="4" height="23" rx="1" fill="#7ab8f5"/>
+            <rect x="18" y="10" width="4" height="18" rx="1" fill="#4e9af1"/>
+            <rect x="24" y="7"  width="4" height="21" rx="1" fill="#7ab8f5"/>
+            <rect x="5"  y="28" width="24" height="2"  rx="1" fill="#a8d0fa"/>
+          </svg>
+        </div>
+        <div class="nav-brand-text">
+          <span class="nav-brand-main">National</span>
+          <span class="nav-brand-accent">Library</span>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="members.html">Members</a>
+        <a class="nav-link" href="add.html">Add Book</a>
+        <a class="nav-link" href="issue-return.html">Issue / Return</a>
+        <a class="nav-link active" href="fines.html">Fines</a>
+      </nav>
+      <div class="nav-right">
+        <span class="nav-date" id="topbar-date"></span>
+        <span class="nav-badge">ADMIN</span>
+        <div class="nav-avatar">NL</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SECTION BAR -->
+  <div class="section-bar">
+    <div class="section-bar-inner">
+      <div>
+        <p class="section-eyebrow">FINES</p>
+        <h2 class="section-title">Fine Calculator</h2>
+      </div>
+      <button class="btn-outline" onclick="scanAll()">⟳ Scan All Members</button>
+    </div>
+  </div>
+
+  <main class="main">
+
+    <div class="fines-layout">
+
+      <!-- FORM -->
+      <div style="display:flex;flex-direction:column;gap:1.2rem">
+        <div class="card">
+          <div class="card-head"><span class="card-cap">Calculate Fine</span></div>
+          <div class="card-body" style="padding:1.3rem 1.5rem">
+            <p class="helper">Enter a date <strong>after 4 July 2025</strong> and a member ID to see the fine breakdown.</p>
+            <div class="field">
+              <label class="flbl">Reference Date *</label>
+              <input type="date" class="finp" id="fine-date" min="2025-07-05"/>
+            </div>
+            <div class="field">
+              <label class="flbl">Member ID *</label>
+              <input type="number" class="finp" id="fine-mid" placeholder="e.g. 101"/>
+            </div>
+            <div id="fine-form-msg" class="notice" style="display:none"></div>
+            <button class="btn-cta w100" onclick="calcFine()">Calculate Fine</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><span class="card-cap">Fine Policy</span></div>
+          <div class="card-body" style="padding:1.2rem 1.5rem">
+            <div class="policy">
+              <div class="policy-row"><span>Loan period</span><strong>15 days</strong></div>
+              <div class="policy-row"><span>Issue date baseline</span><strong>4 July 2025</strong></div>
+              <div class="policy-row"><span>Due date baseline</span><strong>19 July 2025</strong></div>
+              <div class="policy-row"><span>Fine — Executive</span><strong class="accent">PKR 50 / day</strong></div>
+              <div class="policy-row"><span>Fine — Journal</span><strong class="accent">PKR 100 / day</strong></div>
+              <div class="policy-row"><span>Grace period</span><strong>None</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div>
+        <div id="fine-result">
+          <div class="card">
+            <div class="empty-state"><span class="es-icon">◎</span><p>Enter a date and member ID to see fine details.</p></div>
+          </div>
+        </div>
+        <div id="scan-result" style="margin-top:1.5rem;display:none">
+          <div class="card">
+            <div class="card-head"><span class="card-cap">All Members — Fine Scan</span></div>
+            <div style="overflow-x:auto">
+              <table class="scan-tbl" style="width:100%;border-collapse:collapse">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Name</th><th>Type</th>
+                    <th>Books</th><th>Overdue Days</th><th>Total Fine</th><th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="scan-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const ISSUE_DATE_STR = '2025-07-04';
+    const LOAN_DAYS = 15;
+    const FINE_EXEC = 50;
+    const FINE_JOUR = 100;
+
+    /* ── date header ── */
+    const d = new Date();
+    document.getElementById('topbar-date').textContent =
+      d.toLocaleDateString('en-PK',{weekday:'short',year:'numeric',month:'short',day:'numeric'}).toUpperCase();
+    document.getElementById('fine-date').value = d.toISOString().slice(0,10);
+
+    function loadMembers() { return JSON.parse(localStorage.getItem('nl_members') || '[]'); }
+
+    function showNotice(id, msg, type) {
+      const el = document.getElementById(id);
+      el.textContent = msg; el.className = 'notice ' + type; el.style.display = '';
+      setTimeout(() => el.style.display = 'none', 3500);
+    }
+
+    function daysBetween(from, to) {
+      return Math.floor((new Date(to) - new Date(from)) / 86400000);
+    }
+
+    /* ── Single member fine ── */
+    function calcFine() {
+      const dateStr = document.getElementById('fine-date').value;
+      const mid     = parseInt(document.getElementById('fine-mid').value);
+      if (!dateStr) { showNotice('fine-form-msg','Please pick a reference date.','err'); return; }
+      if (!mid)     { showNotice('fine-form-msg','Please enter a Member ID.','err'); return; }
+
+      const members = loadMembers();
+      const m = members.find(x => x.id === mid);
+      if (!m) { showNotice('fine-form-msg','Member not found.','err'); return; }
+      if (!m.books || m.books.length === 0) {
+        showNotice('fine-form-msg','This member has no active loans.','err'); return;
+      }
+
+      const rate    = m.type === 'executive' ? FINE_EXEC : FINE_JOUR;
+      const refDate = new Date(dateStr);
+      const issueD  = new Date(ISSUE_DATE_STR);
+      const dueDate = new Date(issueD);
+      dueDate.setDate(dueDate.getDate() + LOAN_DAYS);
+
+      const totalElapsed = daysBetween(ISSUE_DATE_STR, dateStr);
+      const overdueDays  = Math.max(0, totalElapsed - LOAN_DAYS);
+
+      let totalFine = 0;
+      const bookRows = m.books.map(b => {
+        const bookFine = overdueDays * rate;
+        totalFine += bookFine;
+        return { b, overdueDays, bookFine };
+      });
+
+      const initials   = m.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const badgeCls   = m.type === 'executive' ? 'badge-exec' : 'badge-jour';
+      const badgeTxt   = m.type === 'executive' ? 'Executive' : 'Journal';
+      const amtCls     = totalFine > 0 ? 'debt' : 'ok';
+      const dueDateStr = dueDate.toISOString().slice(0,10);
+
+      const booksHtml = bookRows.map(({b, overdueDays, bookFine}) =>
+        `<div class="book-fine-row">
+          <div class="bfr-icon">📖</div>
+          <div class="bfr-body">
+            <div class="bfr-title">#${b.id} ${b.name}</div>
+            <div class="bfr-meta">Issued: ${b.date || ISSUE_DATE_STR} · Due: ${dueDateStr}</div>
+            <span class="overdue-chip ${overdueDays > 0 ? 'yes' : 'no'}">${overdueDays > 0 ? 'Overdue' : 'On Time'}</span>
+          </div>
+          <div class="bfr-right">
+            <div class="bfr-days">${overdueDays > 0 ? overdueDays + ' day' + (overdueDays>1?'s':'') + ' late' : 'No overdue'}</div>
+            <div class="bfr-fine ${bookFine > 0 ? 'debt' : 'ok'}">PKR ${bookFine.toLocaleString()}</div>
+          </div>
+        </div>`
+      ).join('');
+
+      document.getElementById('fine-result').innerHTML = `
+        <div class="card result-panel">
+          <div class="card-head"><span class="card-cap">Fine Breakdown</span></div>
+          <div style="padding:1.4rem 1.6rem">
+            <div class="fine-hero">
+              <div class="fine-hero-left">
+                <div class="fine-member-name">${m.name}</div>
+                <div class="fine-member-sub">
+                  ID #${m.id} &nbsp;·&nbsp;
+                  <span style="font-family:var(--fm);font-size:.68rem">${m.type === 'executive' ? 'Executive · PKR 50/day' : 'Journal · PKR 100/day'}</span>
+                </div>
+                <div style="margin-top:.5rem;font-size:.78rem;color:var(--t3)">
+                  Ref: ${dateStr} &nbsp;·&nbsp; Due: ${dueDateStr} &nbsp;·&nbsp; ${overdueDays > 0 ? overdueDays + ' days overdue' : 'Within due date'}
+                </div>
+              </div>
+              <div class="fine-total-wrap">
+                <div class="fine-total-label">Total Fine</div>
+                <div class="fine-total-amount ${amtCls}">
+                  <span class="fine-currency">PKR </span>${totalFine.toLocaleString()}
+                </div>
+              </div>
+            </div>
+
+            <div class="breakdown-label">Per Book Breakdown</div>
+            ${booksHtml}
+
+            <div class="policy-box" style="margin-top:1.2rem">
+              <div class="policy-box-title">Summary</div>
+              <div class="policy">
+                <div class="policy-row"><span>Books on Loan</span><strong>${m.books.length}</strong></div>
+                <div class="policy-row"><span>Days Elapsed</span><strong>${totalElapsed}</strong></div>
+                <div class="policy-row"><span>Overdue Days</span><strong ${overdueDays > 0 ? 'style="color:var(--red)"' : 'style="color:var(--green)"'}>${overdueDays}</strong></div>
+                <div class="policy-row"><span>Fine Rate</span><strong>PKR ${rate}/day/book</strong></div>
+                <div class="policy-row"><span>Total Fine</span><strong ${totalFine > 0 ? 'style="color:var(--red)"' : 'style="color:var(--green)"'}>PKR ${totalFine.toLocaleString()}</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* ── Bulk scan ── */
+    function scanAll() {
+      const dateStr = document.getElementById('fine-date').value;
+      if (!dateStr) { showNotice('fine-form-msg','Pick a reference date first.','err'); return; }
+
+      const members = loadMembers();
+      const withBooks = members.filter(m => m.books && m.books.length > 0);
+      const scanResult = document.getElementById('scan-result');
+
+      if (withBooks.length === 0) {
+        scanResult.style.display = '';
+        document.getElementById('scan-tbody').innerHTML =
+          '<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:2rem">No active loans to scan.</td></tr>';
+        return;
+      }
+
+      const totalElapsed = daysBetween(ISSUE_DATE_STR, dateStr);
+      const overdueDays  = Math.max(0, totalElapsed - LOAN_DAYS);
+
+      document.getElementById('scan-tbody').innerHTML = withBooks.map(m => {
+        const rate = m.type === 'executive' ? FINE_EXEC : FINE_JOUR;
+        const total = overdueDays * rate * m.books.length;
+        const statusHtml = total > 0
+          ? `<span style="color:var(--red);font-family:var(--fm);font-size:.72rem">OVERDUE</span>`
+          : `<span style="color:var(--green);font-family:var(--fm);font-size:.72rem">OK</span>`;
+        return `<tr>
+          <td style="font-family:var(--fm);font-size:.75rem;color:var(--t3)">#${m.id}</td>
+          <td style="font-weight:500;color:var(--t1)">${m.name}</td>
+          <td style="font-size:.78rem">${m.type === 'executive' ? 'Executive' : 'Journal'}</td>
+          <td style="font-family:var(--fm);font-size:.78rem">${m.books.length}</td>
+          <td style="font-family:var(--fm);font-size:.78rem;color:${overdueDays>0?'var(--red)':'var(--green)'}">${overdueDays}</td>
+          <td style="font-family:var(--fm);font-size:.85rem;font-weight:700;color:${total>0?'var(--red)':'var(--green)'}">PKR ${total.toLocaleString()}</td>
+          <td>${statusHtml}</td>
+        </tr>`;
+      }).join('');
+
+      scanResult.style.display = '';
+      scanResult.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  </script>
+</body>
+</html>
