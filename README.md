@@ -72,4 +72,5 @@ A full-featured Library Management System with a C++ backend and a modern dark-t
 
 ## 👩‍💻 Developer
 
-**Noor** — CS Student, University of Lahore
+**Noor Ul Eman** — Software Engineer
+
